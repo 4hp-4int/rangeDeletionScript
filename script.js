@@ -5,7 +5,7 @@
 const args = process.argv.slice(2);
 if (args.length < 6) {
   print(
-      'Usage: mongosh <connection_string> --file <script.js> <dbName.collectionName> <batchStart> <batchEnd> <configServerURI>');
+      'Usage: mongosh <connection_string> <script.js> <dbName.collectionName> <batchStart> <batchEnd> <configServerURI>');
   quit(1);
 }
 const targetNss = args[2];             // nss we want to delete orphans from
@@ -45,9 +45,11 @@ while (rangeDeletionsCursor.hasNext()) {
   const maxValue = rangeQuery.max[shardKey];
   print(`Processing range deletion task ${processedTasks}: ${JSON.stringify(rangeQuery)}`);
   print(`Expected orphan documents: ${numOrphanDocs}`);
+
   const [dbName, collName] = targetNss.split('.');
   const collection = db.getSiblingDB(dbName).getCollection(collName);
   const deleteQuery = {[shardKey]: {$gte: minValue, $lt: maxValue}};
+
   try {
     const deleteResult = collection.deleteMany(deleteQuery);
     totalDeletedDocs += deleteResult.deletedCount;
