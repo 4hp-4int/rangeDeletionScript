@@ -38,11 +38,13 @@ let processedTasks = 0;
 while (rangeDeletionsCursor.hasNext()) {
   const range = rangeDeletionsCursor.next();
   processedTasks++;
+
   const numOrphanDocs = range.numOrphanDocs;
   const rangeQuery = range.range;
   const shardKey = Object.keys(rangeQuery.min)[0];
   const minValue = rangeQuery.min[shardKey];
   const maxValue = rangeQuery.max[shardKey];
+
   print(`Processing range deletion task ${processedTasks}: ${JSON.stringify(rangeQuery)}`);
   print(`Expected orphan documents: ${numOrphanDocs}`);
 
