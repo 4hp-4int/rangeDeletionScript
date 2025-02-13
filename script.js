@@ -3,14 +3,16 @@
 // batchEnd is exclusive, meaning it will process documents from batchStart to
 // batchEnd - 1
 const args = process.argv.slice(2);
-if (args.length < 5) {
+if (args.length < 6) {
   print(
-      'Usage: mongosh <connection_string> <script.js> <dbName.collectionName> <batchStart> <batchEnd>');
+      'Usage: mongosh <connection_string> --file <script.js> <dbName.collectionName> <batchStart> <batchEnd> <configServerURI>');
   quit(1);
 }
 const targetNss = args[2];             // nss we want to delete orphans from
 const batchStart = parseInt(args[3]);  // Start index of the batch of range deletion tasks
 const batchEnd = parseInt(args[4]);    // End index of the batch of range deletion tasks
+const configServerUri = args[5]; // Config Server URI to get the config.rangeDeletions documents. 
+
 if (isNaN(batchStart) || isNaN(batchEnd) || batchStart < 0 ||
     batchEnd <= batchStart) {
   print(
@@ -22,7 +24,11 @@ print('Orphan Documents Cleanup Script');
 print('---------------------------');
 print(`Target Namespace: ${targetNss}`);
 print(`Processing batch range: ${batchStart} to ${batchEnd}`);
-const configDB = db.getSiblingDB('config');
+
+// Gets data from the CSRS using the Config ServeR URI
+const configClient = new Mongo(configServerUri); 
+const configDB = configClient.getDB("config");
+
 // Fetch the batch of range deletions within the specified range
 const rangeDeletionsCursor = configDB.rangeDeletions.find({nss: targetNss})
                                  .skip(batchStart)
